@@ -1,0 +1,123 @@
+specification {
+    element person {
+      style {
+        shape person 
+      }
+    }
+    element softwareSystem
+    element frontend
+    element database {
+      style {
+        shape storage
+      }
+    }
+    element mq {
+      style {
+        shape queue 
+        color amber
+      }
+    }
+}
+
+model {
+    user = person 'Пользователь' 
+    {
+        description 'Лицо, которое регистрируется, просматривает промокоды, ставит лайки и комментирует'
+        style {
+            color green
+        }
+    }
+    business = person 'Бизнес'    
+    {
+        description  'Организация, создающая промокоды и отслеживающая статистику'
+        style {
+            color amber
+        }
+    }
+
+    frontend = softwareSystem "Фронтенд"
+    {
+        description 'Пользовательский интерфейс для клиентов и бизнесов'
+        style {
+            shape browser
+        }
+    }
+    backend = softwareSystem 'Бэкенд' 
+    {
+        description 'Система обработки и хранения данных'
+        style {
+            shape storage
+        }
+    }
+
+    user -> frontend 'Просмотры, лайки, комментарии'
+    business -> frontend 'Создание промокодов, просмотр статистики'
+    frontend -> backend 'Взаимодействие по API'
+
+    api_gateway = softwareSystem 'API Gateway' {
+        description 'Принимает запросы с фронтенда по API и маршрутизирует их по сервисам'
+    }
+
+    user_service = softwareSystem 'Сервис пользователей' {
+        description 'Отвечает за регистрацию и авторизацию пользователей, хранит информацию и роли пользователей'
+    }
+    user_db = database 'БД пользователей'
+    {
+        description 'Реляционная БД (postgres) с информацией о пользователях'
+    }
+    user_service -> user_db
+
+    stats_service = softwareSystem 'Сервис статистики' {
+      description 'Отвечает за сбор, обработку и выдачу статистики по просмотрам, лайкам, комментариям'
+    }
+    stats_db = database 'Аналитическая БД'
+    {
+      description 'Clickhouse'
+    }
+    stats_service -> stats_db
+
+    promocode_service = softwareSystem 'Сервис промокодов'
+    {
+        description 'Отвечает за хранение, обработку и выдачу данных о промокодах'
+    }
+    promocode_db = database 'БД Промокодов'
+    {
+        description 'Реляционная БД (postgres) для хранения данных о промокодах'
+    }
+    promocode_service -> promocode_db
+
+    broker = mq 'Брокер сообщений'
+    {
+        description 'Rabbitmq для обмена данными между сервисами'
+    }
+
+    api_gateway -> user_service 'Регистрация, авторизация, изменение пользователей'
+    api_gateway -> stats_service 'Получение статистики' 
+    api_gateway -> promocode_service 'Создание и получение промокодов'
+
+    broker -> stats_service 'Передача событий для учета'
+    promocode_service -> broker 'Передача событий по промокодам'
+    user_service -> broker 'Передача событий по пользователям'
+
+    user_events = mq 'Очередь сообщений о событиях пользователей'
+    user_service -> user_events
+    user_events -> stats_service
+
+    promocode_events = mq 'Очередь сообщений о событиях промокодов'
+    promocode_service -> promocode_events
+    promocode_events -> stats_service
+}
+
+views {
+    view context-diagram {
+        include user, business, backend, frontend
+    }
+
+    view of backend {
+        include api_gateway, user_service, user_db, stats_service, stats_db, promocode_service, promocode_db, broker
+    }
+
+    view of broker {
+        include user_events, user_service, stats_service, promocode_service, promocode_events, 
+    }
+}

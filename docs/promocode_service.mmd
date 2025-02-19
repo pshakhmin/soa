@@ -1,0 +1,46 @@
+erDiagram
+
+promos ||--o{ comments : has
+promos ||--o{ promo_categories : categorizes
+categories ||--o{ promo_categories : includes
+
+promos {
+    UUID id PK "Первичный ключ"
+    UUID business_id "ID бизнес-профиля (из сервиса пользователей)"
+    VARCHAR(255) title "Название промокода"
+    VARCHAR(50) code "Уникальный код"
+    TEXT description "Подробное описание"
+    JSONB terms "Условия использования"
+    TIMESTAMPTZ start_date "Дата начала действия"
+    TIMESTAMPTZ end_date "Дата окончания"
+    BOOLEAN is_active "Активен ли промокод"
+    INTEGER usage_limit "Максимальное количество использований"
+    INTEGER view_count "Счетчик просмотров"
+    TIMESTAMPTZ created_at "Дата создания"
+    TIMESTAMPTZ updated_at "Последнее обновление"
+}
+
+comments {
+    UUID id PK "Идентификатор комментария"
+    UUID user_id "ID автора (из сервиса пользователей)"
+    UUID promo_id FK "Ссылка на promos.id"
+    UUID parent_comment_id FK "Родительский комментарий (для вложенности)"
+    TEXT content "Текст комментария"
+    TIMESTAMPTZ created_at "Время создания"
+    TIMESTAMPTZ edited_at "Последнее редактирование"
+    JSONB reactions "Реакции (лайки/дизлайки)"
+}
+
+categories {
+    UUID id PK "Идентификатор категории"
+    VARCHAR(100) name "Название категории"
+    VARCHAR(100) slug "URL-идентификатор"
+    TEXT description "Описание категории"
+    TIMESTAMPTZ created_at "Дата создания"
+    TIMESTAMPTZ updated_at "Последнее обновление"
+}
+
+promo_categories {
+    UUID promo_id FK "Ссылка на promos.id"
+    UUID category_id FK "Ссылка на categories.id"
+}

@@ -1,0 +1,38 @@
+erDiagram
+
+users ||--o{ user_sessions : has
+users ||--o| business_profiles : "has (optional)"
+
+users {
+    UUID id PK "Первичный ключ"
+    VARCHAR(320) email "Уникальный email"
+    TEXT password_hash "Хеш пароля"
+    TEXT salt "Соль пароля"
+    TIMESTAMPTZ created_at "Дата регистрации с таймзоной"
+    TIMESTAMPTZ updated_at "Последнее обновление"
+    BOOLEAN is_active "Активен ли аккаунт"
+    VARCHAR(50) role "Роль: user|business|admin"
+    VARCHAR(15) phone "Номер телефона"
+    JSONB metadata "Дополнительные данные"
+}
+
+user_sessions {
+    UUID session_id PK "Идентификатор сессии"
+    UUID user_id FK "Ссылка на users.id"
+    TEXT refresh_token "JWT refresh token"
+    TIMESTAMPTZ created_at "Время создания"
+    TIMESTAMPTZ expires_at "Время истечения"
+    INET ip_address "IP клиента"
+    TEXT user_agent "Браузер пользователя"
+}
+
+business_profiles {
+    UUID profile_id PK "Первичный ключ"
+    UUID user_id FK "Ссылка на users.id (NOT NULL)"
+    VARCHAR(255) legal_name "Юридическое название"
+    VARCHAR(20) tax_id "ИНН/КПП"
+    VARCHAR(255) contact_email "Контактный email"
+    TEXT address "Юридический адрес"
+    VARCHAR(15) contact_phone "Контактный телефон"
+    TIMESTAMPTZ verified_at "Дата верификации"
+}
