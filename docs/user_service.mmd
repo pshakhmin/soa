@@ -7,7 +7,6 @@ users {
     UUID id PK "Первичный ключ"
     VARCHAR(320) email "Уникальный email"
     TEXT password_hash "Хеш пароля"
-    TEXT salt "Соль пароля"
     TIMESTAMPTZ created_at "Дата регистрации с таймзоной"
     TIMESTAMPTZ updated_at "Последнее обновление"
     BOOLEAN is_active "Активен ли аккаунт"
