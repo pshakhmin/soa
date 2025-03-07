@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: ./api_gateway
+    ports:
+      - "8000:80"
+    environment:
+      - USER_SERVICE_URL=http://user-service:80
+    depends_on:
+      - user-service
+    networks:
+      - app-network
+
+  user-service:
+    build: ./user_service
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/user_service
+      - JWT_SECRET_KEY=your-secret-key-keep-it-secret
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user_service
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  postgres_data:
