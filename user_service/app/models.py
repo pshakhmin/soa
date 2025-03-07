@@ -14,6 +14,9 @@ class User(Base):
     id = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, comment="Primary Key"
     )
+    username = Column(
+        String(50), unique=True, nullable=False, comment="Unique username"
+    )
     email = Column(
         String(320), unique=True, nullable=False, comment="Unique email address"
     )
