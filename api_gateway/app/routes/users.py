@@ -1,17 +1,19 @@
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
 
 from app.config import settings
+from app import schemas
 
 router = APIRouter()
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register_user(request: Request):
+@router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+async def register_user(user: schemas.UserCreate):
     """
-    Proxy endpoint for user registration
+    Register a new user
     """
-    body = await request.json()
+    body = user.dict()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{settings.USER_SERVICE_URL}/api/v1/users/register", json=body
@@ -23,12 +25,11 @@ async def register_user(request: Request):
         )
 
 
-@router.post("/token")
-async def login_for_access_token(request: Request):
+@router.post("/token", response_model=schemas.Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Proxy endpoint for token generation
+    Get access and refresh tokens
     """
-    form_data = await request.form()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{settings.USER_SERVICE_URL}/api/v1/users/token", data=dict(form_data)
@@ -40,12 +41,12 @@ async def login_for_access_token(request: Request):
         )
 
 
-@router.post("/refresh")
-async def refresh_token(request: Request):
+@router.post("/refresh", response_model=schemas.Token)
+async def refresh_token(refresh_token: schemas.RefreshToken):
     """
-    Proxy endpoint for token refresh
+    Refresh access token
     """
-    body = await request.json()
+    body = refresh_token.dict()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{settings.USER_SERVICE_URL}/api/v1/users/refresh", json=body
@@ -57,10 +58,10 @@ async def refresh_token(request: Request):
         )
 
 
-@router.get("/me")
+@router.get("/me", response_model=schemas.UserResponse)
 async def read_users_me(request: Request):
     """
-    Proxy endpoint to get current user
+    Get current user profile
     """
     headers = dict(request.headers)
     async with httpx.AsyncClient() as client:
@@ -74,12 +75,12 @@ async def read_users_me(request: Request):
         )
 
 
-@router.put("/me")
-async def update_user_me(request: Request):
+@router.put("/me", response_model=schemas.UserResponse)
+async def update_user_me(user_update: schemas.UserUpdate, request: Request):
     """
-    Proxy endpoint to update current user
+    Update current user profile
     """
-    body = await request.json()
+    body = user_update.dict(exclude_unset=True)
     headers = dict(request.headers)
     async with httpx.AsyncClient() as client:
         response = await client.put(
