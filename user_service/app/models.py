@@ -32,7 +32,11 @@ class User(Base):
     )
 
     is_active = Column(Boolean, default=True)
-    role = Column(String(50), nullable=False, comment="Role: user|business|admin")
+    role = Column(
+        String(50),
+        nullable=False,
+        comment="Role: user|business|admin",
+    )
     phone = Column(String(15))
 
     meta = Column("metadata", JSONB, comment="Additional data")
@@ -62,4 +66,3 @@ class BusinessProfile(Base):
     verified_at = Column(DateTime(timezone=True), comment="Verification date")
 
     user = relationship("User", back_populates="business_profile")
-
