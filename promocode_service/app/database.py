@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from app.config import settings # Import settings from promocode_service config
+from app.config import settings  # Import settings from promocode_service config
 
 # Create the SQLAlchemy engine using the DATABASE_URL from settings
 # Example: postgresql://promo_user:promo_password@promocode-db:5432/promocode_db
@@ -17,6 +17,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # If models.py does *not* define Base, uncomment the line below
 # Base = declarative_base()
+
 
 # Dependency to get DB session
 def get_db():

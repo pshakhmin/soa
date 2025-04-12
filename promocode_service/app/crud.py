@@ -5,27 +5,34 @@ from sqlalchemy import desc, func, select
 
 from . import models, schemas
 
-def create_promocode(db: Session, promocode: schemas.PromocodeCreate, owner_id: uuid.UUID) -> models.Promocode:
+
+def create_promocode(
+    db: Session, promocode: schemas.PromocodeCreate, owner_id: uuid.UUID
+) -> models.Promocode:
     """
     Creates a new promocode in the database.
     """
-    db_promocode = models.Promocode(
-        **promocode.model_dump(),
-        owner_id=owner_id
-    )
+    db_promocode = models.Promocode(**promocode.model_dump(), owner_id=owner_id)
     db.add(db_promocode)
     db.commit()
     db.refresh(db_promocode)
     return db_promocode
 
-def get_promocode_by_id(db: Session, promocode_id: uuid.UUID, owner_id: uuid.UUID) -> Optional[models.Promocode]:
+
+def get_promocode_by_id(
+    db: Session, promocode_id: uuid.UUID, owner_id: uuid.UUID
+) -> Optional[models.Promocode]:
     """
     Gets a specific promocode by its ID, ensuring it belongs to the owner.
     """
-    return db.query(models.Promocode).filter(
-        models.Promocode.id == promocode_id,
-        models.Promocode.owner_id == owner_id
-    ).first()
+    return (
+        db.query(models.Promocode)
+        .filter(
+            models.Promocode.id == promocode_id, models.Promocode.owner_id == owner_id
+        )
+        .first()
+    )
+
 
 def get_promocode_by_code(db: Session, code: str) -> Optional[models.Promocode]:
     """
@@ -49,29 +56,41 @@ def get_promocodes_by_owner(
     total_count = db.execute(total_count_query).scalar_one()
 
     # Apply ordering and pagination
-    promocodes = query.order_by(desc(models.Promocode.created_at)).offset(skip).limit(limit).all()
+    promocodes = (
+        query.order_by(desc(models.Promocode.created_at))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
     return promocodes, total_count
 
 
 def update_promocode(
-    db: Session, promocode_id: uuid.UUID, promocode_update: schemas.PromocodeUpdate, owner_id: uuid.UUID
+    db: Session,
+    promocode_id: uuid.UUID,
+    promocode_update: schemas.PromocodeUpdate,
+    owner_id: uuid.UUID,
 ) -> Optional[models.Promocode]:
     """
     Updates an existing promocode, ensuring it belongs to the owner.
     """
-    db_promocode = get_promocode_by_id(db=db, promocode_id=promocode_id, owner_id=owner_id)
+    db_promocode = get_promocode_by_id(
+        db=db, promocode_id=promocode_id, owner_id=owner_id
+    )
     if not db_promocode:
         return None
 
-    update_data = promocode_update.model_dump(exclude_unset=True) # Get only provided fields
+    update_data = promocode_update.model_dump(
+        exclude_unset=True
+    )  # Get only provided fields
 
     # Check for code uniqueness if code is being updated to a new value
     if "code" in update_data and update_data["code"] != db_promocode.code:
         existing_code = get_promocode_by_code(db, update_data["code"])
         if existing_code:
             # Or raise a specific exception to be handled by the gRPC server
-            return None # Indicate conflict or failure
+            return None  # Indicate conflict or failure
 
     for key, value in update_data.items():
         setattr(db_promocode, key, value)
@@ -81,18 +100,22 @@ def update_promocode(
     db.refresh(db_promocode)
     return db_promocode
 
+
 def delete_promocode(db: Session, promocode_id: uuid.UUID, owner_id: uuid.UUID) -> bool:
     """
     Deletes a promocode by its ID, ensuring it belongs to the owner.
     Returns True if deletion was successful, False otherwise.
     """
-    db_promocode = get_promocode_by_id(db=db, promocode_id=promocode_id, owner_id=owner_id)
+    db_promocode = get_promocode_by_id(
+        db=db, promocode_id=promocode_id, owner_id=owner_id
+    )
     if not db_promocode:
         return False
 
     db.delete(db_promocode)
     db.commit()
     return True
+
 
 # Add other potential CRUD functions if needed, e.g., for applying/validating promocodes
 # def apply_promocode(db: Session, code: str, user_id: uuid.UUID) -> Optional[models.Promocode]:

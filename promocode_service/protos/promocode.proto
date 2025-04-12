@@ -19,13 +19,13 @@ message Promocode {
   string code = 2;
   DiscountType discount_type = 3;
   double discount_value = 4; // double для процентов или фиксированных сумм
-  google.protobuf.Timestamp expires_at = 5; // Время истечения срока действия
-  int32 usage_limit = 6;      // Лимит использований
-  string description = 7;     // Описание
-  string owner_id = 8;        // UUID владельца как строка
-  google.protobuf.Timestamp created_at = 9; // Время создания
+  google.protobuf.Timestamp expires_at = 5;  // Время истечения срока действия
+  int32 usage_limit = 6;                     // Лимит использований
+  string description = 7;                    // Описание
+  string owner_id = 8;                       // UUID владельца как строка
+  google.protobuf.Timestamp created_at = 9;  // Время создания
   google.protobuf.Timestamp updated_at = 10; // Время обновления
-  int32 usage_count = 11;     // Количество использований
+  int32 usage_count = 11;                    // Количество использований
 }
 
 // Запрос на создание промокода (owner_id берется из метаданных)
@@ -52,17 +52,19 @@ message ListPromocodesRequest {
 // Ответ для списка промокодов
 message ListPromocodesResponse {
   repeated Promocode promocodes = 1; // Список промокодов
-  int32 total_count = 2;          // Общее количество
+  int32 total_count = 2;             // Общее количество
 }
 
 // Запрос на обновление промокода
 // Используем обертки (wrappers) для опциональных полей,
-// чтобы различать неустановленные значения и значения по умолчанию (например, 0 для int32)
+// чтобы различать неустановленные значения и значения по умолчанию (например, 0
+// для int32)
 message UpdatePromocodeRequest {
   string promocode_id = 1; // UUID как строка
   google.protobuf.StringValue code = 2;
   // Enum не имеет стандартной обертки. Отправляем всегда.
-  // Сервер может сравнить с текущим значением, если необходимо определить изменение.
+  // Сервер может сравнить с текущим значением, если необходимо определить
+  // изменение.
   DiscountType discount_type = 3;
   google.protobuf.DoubleValue discount_value = 4;
   // Timestamp может быть null/default для обозначения опциональности
@@ -79,13 +81,13 @@ message DeletePromocodeRequest {
 // Определение сервиса PromocodeService
 service PromocodeService {
   // Создает новый промокод
-  rpc CreatePromocode (CreatePromocodeRequest) returns (Promocode);
+  rpc CreatePromocode(CreatePromocodeRequest) returns (Promocode);
   // Получает промокод по ID
-  rpc GetPromocode (GetPromocodeRequest) returns (Promocode);
+  rpc GetPromocode(GetPromocodeRequest) returns (Promocode);
   // Получает список промокодов владельца с пагинацией
-  rpc ListPromocodes (ListPromocodesRequest) returns (ListPromocodesResponse);
+  rpc ListPromocodes(ListPromocodesRequest) returns (ListPromocodesResponse);
   // Обновляет существующий промокод
-  rpc UpdatePromocode (UpdatePromocodeRequest) returns (Promocode);
+  rpc UpdatePromocode(UpdatePromocodeRequest) returns (Promocode);
   // Удаляет промокод
-  rpc DeletePromocode (DeletePromocodeRequest) returns (google.protobuf.Empty);
+  rpc DeletePromocode(DeletePromocodeRequest) returns (google.protobuf.Empty);
 }

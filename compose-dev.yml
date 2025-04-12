@@ -1,24 +1,17 @@
-version: "3.8"
-
 services:
   api-gateway:
-    build: ./api_gateway
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
     ports:
       - "8000:80"
     environment:
       - USER_SERVICE_URL=http://user-service:80
-    volumes:
-      - ./api_gateway/app:/code/app
-    command:
-      [
-        "uvicorn",
-        "app.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "80",
-        "--reload",
-      ]
+    #volumes:
+    #- ./api_gateway/app:/code/app
+    #command:
+    #["uvicorn","app.main:app","--host","0.0.0.0","--port","80","--reload"]
+
     depends_on:
       - user-service
     networks:
@@ -45,22 +38,28 @@ services:
         "--reload",
       ]
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
   db:
     image: postgres:13
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - ./postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=user_service
+      - POSTGRES_DB=promocodes
     ports:
       - "5432:5432"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "promocodes"]
+      interval: 2s
+      timeout: 60s
+      retries: 5
 
 networks:
   app-network:
