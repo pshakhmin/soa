@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package promocode;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto"; // Для опциональных полей в Update
+
+// Enum для типов скидок
+enum DiscountType {
+  DISCOUNT_TYPE_UNSPECIFIED = 0; // Не указан
+  PERCENTAGE = 1;                // Процент
+  FIXED_AMOUNT = 2;              // Фиксированная сумма
+}
+
+// Представление объекта промокода
+message Promocode {
+  string id = 1; // UUID как строка
+  string code = 2;
+  DiscountType discount_type = 3;
+  double discount_value = 4; // double для процентов или фиксированных сумм
+  google.protobuf.Timestamp expires_at = 5; // Время истечения срока действия
+  int32 usage_limit = 6;      // Лимит использований
+  string description = 7;     // Описание
+  string owner_id = 8;        // UUID владельца как строка
+  google.protobuf.Timestamp created_at = 9; // Время создания
+  google.protobuf.Timestamp updated_at = 10; // Время обновления
+  int32 usage_count = 11;     // Количество использований
+}
+
+// Запрос на создание промокода (owner_id берется из метаданных)
+message CreatePromocodeRequest {
+  string code = 1;
+  DiscountType discount_type = 2;
+  double discount_value = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  int32 usage_limit = 5;
+  string description = 6;
+}
+
+// Запрос на получение конкретного промокода
+message GetPromocodeRequest {
+  string promocode_id = 1; // UUID как строка
+}
+
+// Запрос на получение списка промокодов с пагинацией
+message ListPromocodesRequest {
+  int32 page = 1;      // Номер страницы
+  int32 page_size = 2; // Размер страницы
+}
+
+// Ответ для списка промокодов
+message ListPromocodesResponse {
+  repeated Promocode promocodes = 1; // Список промокодов
+  int32 total_count = 2;          // Общее количество
+}
+
+// Запрос на обновление промокода
+// Используем обертки (wrappers) для опциональных полей,
+// чтобы различать неустановленные значения и значения по умолчанию (например, 0 для int32)
+message UpdatePromocodeRequest {
+  string promocode_id = 1; // UUID как строка
+  google.protobuf.StringValue code = 2;
+  // Enum не имеет стандартной обертки. Отправляем всегда.
+  // Сервер может сравнить с текущим значением, если необходимо определить изменение.
+  DiscountType discount_type = 3;
+  google.protobuf.DoubleValue discount_value = 4;
+  // Timestamp может быть null/default для обозначения опциональности
+  google.protobuf.Timestamp expires_at = 5;
+  google.protobuf.Int32Value usage_limit = 6;
+  google.protobuf.StringValue description = 7;
+}
+
+// Запрос на удаление промокода
+message DeletePromocodeRequest {
+  string promocode_id = 1; // UUID как строка
+}
+
+// Определение сервиса PromocodeService
+service PromocodeService {
+  // Создает новый промокод
+  rpc CreatePromocode (CreatePromocodeRequest) returns (Promocode);
+  // Получает промокод по ID
+  rpc GetPromocode (GetPromocodeRequest) returns (Promocode);
+  // Получает список промокодов владельца с пагинацией
+  rpc ListPromocodes (ListPromocodesRequest) returns (ListPromocodesResponse);
+  // Обновляет существующий промокод
+  rpc UpdatePromocode (UpdatePromocodeRequest) returns (Promocode);
+  // Удаляет промокод
+  rpc DeletePromocode (DeletePromocodeRequest) returns (google.protobuf.Empty);
+}

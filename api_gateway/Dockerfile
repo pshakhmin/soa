@@ -12,8 +12,9 @@ COPY ./promocode_service/protos /code/protos_src
 
 # Compile protos
 # Ensure the output directory (/code/app) exists and is part of PYTHONPATH
-# Update the include path (-I) and the input file path to use the new source location
-RUN python -m grpc_tools.protoc -I./protos_src --python_out=./app --grpc_python_out=./app ./protos_src/promocode.proto
+# Update the include path (-I) and the input file path to use the correct source location
+# This assumes the proto file is named 'promocode.proto' inside 'promocode_service/protos'
+RUN python -m grpc_tools.protoc -I/code/protos_src --python_out=/code/app --grpc_python_out=/code/app /code/protos_src/promocode.proto
 
 COPY ./app /code/app
 
