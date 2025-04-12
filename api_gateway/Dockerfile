@@ -6,13 +6,14 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Copy proto definitions
-COPY ./protos /code/protos
+# Copy proto definitions from the promocode_service directory
+# We copy them into a temporary location within the build context, e.g., /code/protos_src
+COPY ./promocode_service/protos /code/protos_src
 
 # Compile protos
 # Ensure the output directory (/code/app) exists and is part of PYTHONPATH
-# The '.' path for proto_path assumes promocode.proto might import other protos from the ./protos root
-RUN python -m grpc_tools.protoc -I./protos --python_out=./app --grpc_python_out=./app ./protos/promocode.proto
+# Update the include path (-I) and the input file path to use the new source location
+RUN python -m grpc_tools.protoc -I./protos_src --python_out=./app --grpc_python_out=./app ./protos_src/promocode.proto
 
 COPY ./app /code/app
 
